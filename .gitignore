@@ -5,11 +5,10 @@ __pycache__/
 venv/
 .env
 
-# Database
-auto_db.sqlite
-
-# Uploads
+# Database and uploads
+*.sqlite
 uploads/
+/data/
 
 # Node
 node_modules/
