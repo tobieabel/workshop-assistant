@@ -1,5 +1,21 @@
-ai/
-.vscode/
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+venv/
 .env
+
+# Database
 auto_db.sqlite
+
+# Uploads
+uploads/
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

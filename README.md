@@ -1,6 +1,6 @@
 # Workshop Assistant Application
 
-A full-stack web application for managing and viewing PDF lesson plans with text extraction capabilities.
+A full-stack web application for managing and viewing PDF lesson plans with text extraction capabilities and an AI teaching assistant powered by LiveKit.
 
 ## Architecture Overview
 
@@ -17,10 +17,11 @@ The backend is built with Flask and follows a modular design pattern:
      - `/lesson-plan/<id>` - PDF retrieval and deletion
      - `/lesson-plans` - List all lesson plans
    - Integrates PDF text extraction with file uploads
-   - Manages file storage in `uploads/` directory
+   - Uses Uvicorn for production deployment
 
 2. **Database Driver (`db_driver.py`)**
    - SQLite database management using `sqlite3`
+   - Configurable database path via environment variables
    - Key tables:
      - `lesson_plans`: Stores PDF metadata and extracted text
      - Schema:
@@ -41,6 +42,13 @@ The backend is built with Flask and follows a modular design pattern:
    - Extracts text content from uploaded PDFs
    - Includes logging for debugging
 
+4. **LiveKit Agent (`agent.py`)**
+   - AI teaching assistant powered by LiveKit and OpenAI
+   - Real-time voice and text interaction
+   - Context-aware responses based on lesson plans
+   - Handles speech-to-text and text-to-speech conversion
+   - Event-driven architecture using WebSocket connections
+
 ### Frontend Architecture
 
 Built with React and Vite, featuring:
@@ -50,6 +58,8 @@ Built with React and Vite, featuring:
 - Interactive PDF viewer with navigation
 - Real-time table updates
 - Delete functionality
+- Voice/text chat interface with AI assistant
+- Real-time audio visualization
 
 ## Setup and Installation
 
@@ -66,14 +76,26 @@ Built with React and Vite, featuring:
    pip install -r requirements.txt
    ```
 
-3. Run the server:
-   ```bash
-   python server.py
+3. Set up environment variables (create `.env` file):
    ```
-   Server runs on `http://localhost:5001`
+   LIVEKIT_URL=your_livekit_url
+   LIVEKIT_API_KEY=your_api_key
+   LIVEKIT_API_SECRET=your_api_secret
+   OPENAI_API_KEY=your_openai_key
+   ```
+
+4. Run the server locally:
+   ```bash
+   uvicorn server:app --host 0.0.0.0 --port 5001
+   ```
+
+5. Run the LiveKit agent:
+   ```bash
+   python agent.py
+   ```
 
 ### Frontend Setup
-1. Install Node.js dependencies:
+1. Install dependencies:
    ```bash
    cd frontend
    npm install
@@ -83,7 +105,42 @@ Built with React and Vite, featuring:
    ```bash
    npm run dev
    ```
-   Frontend runs on `http://localhost:5173`
+
+## Deployment
+
+The application is configured for deployment on Render.com using the provided `render.yaml`:
+
+### Key Features
+- Automatic deployment from GitHub
+- Persistent disk storage for database and uploads
+- Environment variable management
+- Automatic HTTPS
+- Horizontal scaling for the LiveKit agent
+
+### Deployment Steps
+1. Fork/clone this repository
+2. Create a new project on Render.com
+3. Link your GitHub repository
+4. Create an environment group with required variables:
+   - `LIVEKIT_URL`
+   - `LIVEKIT_API_KEY`
+   - `LIVEKIT_API_SECRET`
+   - `OPENAI_API_KEY`
+5. Deploy using the provided `render.yaml`
+
+### Database Configuration
+The application uses SQLite with persistent storage:
+- Development: Local SQLite file
+- Production: Mounted disk on Render.com
+- Environment variable `DB_PATH` controls database location
+- Automatic directory creation and initialization
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## Data Flow
 
