@@ -41,4 +41,15 @@ services:
       - key: LIVEKIT_API_SECRET
         sync: false
       - key: OPENAI_API_KEY
-        sync: false 
+        sync: false
+
+  - type: web
+    name: workshop-assistant-frontend
+    env: node
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://workshop-assistant-server.onrender.com 
+      - key: VITE_LIVEKIT_URL
+        value: "wss://magic-mirror-j75in8d1.livekit.cloud"

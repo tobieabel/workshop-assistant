@@ -25,20 +25,15 @@ const FileUpload = () => {
     setUploadStatus('');
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setUploadStatus('Please select a file first');
-      return;
-    }
-
-    setIsLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     const formData = new FormData();
     formData.append('file', selectedFile);
-
+    
     try {
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: 'POST',
-        body: formData,
+        body: formData
       });
 
       if (!response.ok) {
@@ -52,6 +47,7 @@ const FileUpload = () => {
       window.dispatchEvent(new CustomEvent('lessonPlanUploaded'));
       
     } catch (error) {
+      console.error('Error:', error);
       setUploadStatus('Failed to upload file: ' + error.message);
     } finally {
       setIsLoading(false);
@@ -72,7 +68,7 @@ const FileUpload = () => {
         </div>
       )}
       <button 
-        onClick={handleUpload} 
+        onClick={handleSubmit} 
         disabled={!selectedFile || isLoading}
         className="upload-button"
       >

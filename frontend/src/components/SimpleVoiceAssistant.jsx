@@ -8,6 +8,7 @@ import {
 import { Track } from "livekit-client";
 import { useEffect, useState } from "react";
 import "./SimpleVoiceAssistant.css";
+import { LiveKitRoom } from "@livekit/components-react";
 
 const Message = ({ type, text }) => {
   return <div className="message">

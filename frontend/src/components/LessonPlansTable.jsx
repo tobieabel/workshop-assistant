@@ -22,14 +22,11 @@ const LessonPlansTable = () => {
 
     const fetchPlans = async () => {
         try {
-            const response = await fetch('/api/lesson-plans');
-            if (!response.ok) {
-                throw new Error('Failed to fetch plans');
-            }
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/lesson-plans`);
             const data = await response.json();
             setPlans(data);
-        } catch (err) {
-            setError(err.message);
+        } catch (error) {
+            console.error('Error fetching lesson plans:', error);
         } finally {
             setLoading(false);
         }

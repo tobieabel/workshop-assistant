@@ -36,7 +36,7 @@ async def get_rooms():
     await api.aclose()
     return [room.name for room in rooms.rooms]
 
-@app.route("/getToken")
+@app.route("/api/getToken")
 async def get_token():
     name = request.args.get("name", "my name")
     room = request.args.get("room", None)
