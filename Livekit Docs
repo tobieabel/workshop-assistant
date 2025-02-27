@@ -1,0 +1,96 @@
+Deployment and scaling
+Automatic load balancing and best practices for deploying agents.
+
+Agent workers are designed to be deployable and scalable by default. When you start your worker locally, you are adding it to a pool (of one). LiveKit automatically load balances across available workers in the pool.
+
+This works the same way in production, the only difference is the worker is deployed somewhere with more than one running instance.
+
+Diagram showing multiple workers running multiple instances of your Agent
+Deployment best practices
+Networking
+Workers communicate with LiveKit and accept incoming jobs via a WebSocket connection to a LiveKit server. This means that workers are not web servers and do not need to be exposed to the public internet. No inbound hosts or ports need to be exposed.
+
+Workers can optionally expose a health check endpoint for monitoring purposes. This is not required for normal operation. The default health check server listens on http://0.0.0.0:8081/.
+
+Environment variables
+Your production worker will need certain environment variables configured.
+
+A minimal worker requires the LiveKit URL, API key and secret:
+
+LIVEKIT_URL
+LIVEKIT_API_KEY
+LIVEKIT_API_SECRET
+Depending on the plugins your agent uses, you might need additional environment variables:
+
+DEEPGRAM_API_KEY
+CARTESIA_API_KEY
+OPENAI_API_KEY
+etc.
+Important
+If you use a LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET from the same project that you use for local development, your local worker will join the same pool as your production workers.
+
+This means real users could be connected to your local worker.
+
+This is usually not what you want so make sure to use a different project for local development.
+
+Storage
+Workers are stateless and do not require persistent storage. The minimal docker image is about 1GB in size. For ephemeral storage, 10GB should be more than enough to account for the docker image size and any temporary files that are created.
+
+Memory and CPU
+Different agents will have different memory and CPU requirements. To help guide your scaling decisions, we ran a load test that approximates the load of a voice-to-voice session on a 4-Core, 8GB machine.
+
+Tip
+During the automated load test we also added one human participant interacting with a voice assistant agent to make sure quality of service was maintained.
+
+This test created 30 agents corresponding to 30 users (so 60 participants in total). The users published looping speech audio. The agents were subscribed to their corresponding user's audio and running the Silero voice activity detection plugin against that audio.
+
+The agents also published their own audio which was a simple sine wave.
+
+In short, this test was designed to evaluate a voice assistant use case where the agent is listening to user speech, running VAD, and publishing audio back to the user.
+
+The results of running the above test on a 4-Core, 8GB machine are:
+
+CPU Usage: ~3.8 cores
+
+Memory usage: ~2.8GB
+
+To be safe and account for spikes, we recommend 4 cores for every 25 voice agents.
+
+Rollout
+Workers stop accepting jobs when they receive a SIGINT or SIGTERM. Agents that are still running on the worker continue to run. It's important that you configure a large enough grace period for your containers to allow agents to finish.
+
+Voice agents could require a 10+ minute grace period to allow for conversations to finish.
+
+Different deployment platforms have different ways of setting this grace period. In Kubernetes, it's the terminationGracePeriodSeconds field in the pod spec.
+
+Consult your deployment platform's documentation for more information.
+
+Load balancing
+Workers don't need an external load balancer. They rely on a job distribution system embedded within LiveKit servers. This system is responsible for ensuring that when a job becomes available (e.g. a new room is created), it is dispatched to only one worker at a time. If a worker fails to accept the job within a predetermined timeout period, the job is routed to another available worker.
+
+In the case of LiveKit Cloud, the system prioritizes available workers at the "edge" or geographically closest to the end-user. Within a region, job distribution is uniform across workers.
+
+Worker availability
+As mentioned in the Load Balancing section, LiveKit will automatically distribute load across available workers. This means that LiveKit needs a way to know which workers are available.
+
+This "worker availability" is defined by the load_fnc and load_threshold in the WorkerOptions configuration.
+
+The load_fnc returns a value between 0 and 1, indicating how busy the worker is while load_threshold, a value between 0 and 1, is that load value at which the worker will stop accepting new jobs.
+
+By default, the load_fnc returns the CPU usage of the worker and the load_threshold is 0.75.
+
+Autoscaling
+Many voice agent use cases have non-uniform load patterns over a day/week/month so it's a good idea to configure an autoscaler.
+
+An autoscaler should be configured at a lower threshold than the worker's load_threshold. This allows for existing workers to continue to accept new jobs while additional workers are still starting up.
+
+Since voice agents are typically long running tasks (relative to typical web requests), rapid increases in load are more likely to be sustained. In technical terms: spikes are less spikey. For your autoscaling configuration, you should consider reducing cooldown/stabilization periods when scaling up. When scaling down, consider increasing cooldown/stabilization periods because workers take time to drain.
+
+For example, if deploying on Kubernetes using a Horizontal Pod Autoscaler, see stabilizationWindowSeconds.
+
+Where to deploy
+There are many ways to deploy software to a production environment. We provide some platform-specific deployment examples. All of the examples assume Docker containers are used for deployment.
+
+Recommendations
+Render.com: We (and other builders in the LiveKit community) have found Render.com to be the easiest way to deploy and autoscale workers. We provide an example render.yaml and instructions in the deployment examples repo.
+Kubernetes: If you have a running Kubernetes cluster, it makes sense to deploy your workers there. We provide an example manifest in the deployment example repo.

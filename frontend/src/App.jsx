@@ -1,6 +1,11 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css'
 import LiveKitModal from './components/LiveKitModal';
+import FileUpload from './components/FileUpload';
+import LessonPlansTable from './components/LessonPlansTable';
+import PlanViewer from './components/PlanViewer';
+import logo from './assets/logo-svg.svg'
 
 function App() {
   const [showSupport, setShowSupport] = useState(false);
@@ -9,30 +14,43 @@ function App() {
     setShowSupport(true)
   }
 
-  return (
-    <div className="app">
-      <header className="header">
-        <div className="logo">AutoZone</div>
-      </header>
-
-      <main>
+  const HomePage = () => (
+    <>
+      <main className="main-content">
         <section className="hero">
-          <h1>Get the Right Parts. Right Now</h1>
-          <p>Free Next Day Delivery on Eligible Orders</p>
-          <div className="search-bar">
-            <input type="text" placeholder='Enter vehicle or part number'></input>
-            <button>Search</button>
-          </div>
+          <h1>AI Assistance to Order</h1>
+          <p>Upload your session plan</p>
+          <FileUpload />
         </section>
 
-        <button className="support-button" onClick={handleSupportClick}>
-          Talk to an Agent!
-        </button>
-      </main>
+        <LessonPlansTable />
 
-      {showSupport && <LiveKitModal setShowSupport={setShowSupport}/>}
-    </div>
-  )
+        <div className="center-container">
+          <button className="support-button" onClick={handleSupportClick}>
+            Launch Assistant
+          </button>
+        </div>
+      </main>
+    </>
+  );
+
+  return (
+    <Router>
+      <div className="app">
+        <img src={logo} alt="ATS York Logo" className="logo-image" />
+        <header className="header">
+          <div className="app-title">Workshop Assistant</div>
+        </header>
+
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/plan/:planId" element={<PlanViewer />} />
+        </Routes>
+
+        {showSupport && <LiveKitModal setShowSupport={setShowSupport}/>}
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;

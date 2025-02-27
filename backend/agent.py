@@ -9,18 +9,30 @@ from livekit.agents import (
 from livekit.agents.multimodal import MultimodalAgent
 from livekit.plugins import openai
 from dotenv import load_dotenv
-from api import AssistantFnc
+from api import AssistantFnc, DB  # Import DB from api where it's already instantiated
 from prompts import WELCOME_MESSAGE, INSTRUCTIONS, LOOKUP_VIN_MESSAGE
 import os
 
 load_dotenv()
+print("LIVEKIT_API_KEY:", os.getenv("LIVEKIT_API_KEY"))
 
 async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
     await ctx.wait_for_participant()
     
+    # Get active lesson plan content
+    active_plan = DB.get_active_lesson_plan()
+    lesson_content = active_plan['content'] if active_plan else "No lesson plan selected"
+    
+    # Log the first 50 characters of the lesson content
+    preview = lesson_content[:50] + "..." if len(lesson_content) > 50 else lesson_content
+    print(f"Loading agent with lesson content: {preview}")
+    
+    # Format instructions with lesson plan content
+    formatted_instructions = INSTRUCTIONS.format(lesson_plan=lesson_content)
+    
     model = openai.realtime.RealtimeModel(
-        instructions=INSTRUCTIONS,
+        instructions=formatted_instructions,
         voice="shimmer",
         temperature=0.8,
         modalities=["audio", "text"]

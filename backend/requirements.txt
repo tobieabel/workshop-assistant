@@ -7,3 +7,5 @@ flask[async]
 flask
 flask-cors
 uvicorn
+Werkzeug
+PyPDF2

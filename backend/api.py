@@ -19,7 +19,8 @@ class CarDetails(enum.Enum):
 class AssistantFnc(llm.FunctionContext):
     def __init__(self):
         super().__init__()
-        
+        #add some context to the this class so that the llm has some specific information to work with,
+        #for example, the car details that are the subject of the conversation.
         self._car_details = {
             CarDetails.VIN: "",
             CarDetails.Make: "",
@@ -78,5 +79,4 @@ class AssistantFnc(llm.FunctionContext):
         
         return "car created!"
     
-    def has_car(self):
-        return self._car_details[CarDetails.VIN] != ""
+   
